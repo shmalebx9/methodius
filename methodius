@@ -1,0 +1,103 @@
+#!/usr/bin/bash
+
+Bootstrap(){
+
+    echo -e "\n\tInstalling templates"
+    mkdir -p ~/.local/share/pandoc/templates
+    cp $PWD/templates/* ~/.local/share/pandoc/templates
+
+    echo -e "\n\tInstalling texlive"
+    sudo xbps-install texlive-bin texlive-latexextra \
+    && source /etc/profile \
+    && sudo tlmgr install adjustbox babel-german background \
+    bidi collectbox csquotes everypage filehook footmisc \
+    footnotebackref framed fvextra letltxmacro ly1 mdframed \
+    mweights needspace pagecolor sourcecodepro \
+    sourcesanspro titling ucharcat ulem unicode-math upquote xecjk xurl zref\
+    || { echo -e "\n\tfailed to install texlive" \
+    && return 1; }
+
+
+    echo -e "\n\tInstalling pandoc-url2cite"
+    sudo npm install -g pandoc-url2cite  \
+    || sudo xbps-install nodejs \
+    && sudo npm install -g pandoc-url2cite \
+    || { echo -e "\n \tfailed to install pandoc-url2cite" \
+    && return 1; }
+
+    echo -e "\n\tInstalling tectonic"
+    sudo xbps-install tectonic \
+    || { echo -e "\n \tfailed to install tectonic" \
+    && return 1; }
+
+return 0
+}
+
+Help(){
+    echo -e "\n\tThis tool allows you to easily compile markdown documents into pdf text\
+    \n\n\tUsage: [file] -option(s) \
+    \n\tIf only a file is specified the default CSL and template will be used \
+    \n\n\tOptions: \n\t-h: print this help and exit \
+    \n\t-c: path to csl file \
+    \n\t-t: path to latex template \
+    \n\t-b: bootstrap this helper"
+}
+
+SetTemplate(){
+    if [[ -z $template ]] ; then
+        template="methodius"
+    fi
+    if [[ -z $CSL ]] ; then
+        CSL="$HOME/.local/share/pandoc/templates/chicago_note.csl"
+    fi
+}
+
+Convertpdf(){
+    pandoc \
+    --filter=pandoc-url2cite --filter=pandoc-citeproc \
+    --csl $CSL \
+    --pdf-engine=tectonic \
+    --template $template \
+    -s $file \
+    -o $output.pdf \
+    && return 0 || return 1
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -b|--bootstrap)
+    EXTENSION="$2"
+    Bootstrap && exit 0 || exit 1
+    ;;
+    -t|--template)
+    template="$2"
+    shift
+    shift
+    ;;
+    -c|--csl)
+    CSL="$2"
+    shift 
+    shift
+    ;;
+    -h|--help)
+    Help && exit 0
+    ;;
+    *)
+    POSITIONAL+=("$1")
+    shift
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+file=$1
+base=$(basename $1)
+output=${base%%.*}
+
+SetTemplate
+echo -e "\t[INPUT VARIABLES]\n\tinput: $file \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output.pdf\n"
+Convertpdf
