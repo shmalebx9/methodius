@@ -40,6 +40,7 @@ Help(){
     \n\n\tOptions: \n\t-h: print this help and exit \
     \n\t-c: path to csl file \
     \n\t-t: path to latex template \
+    \n\t-nf: do not apply citation filters \
     \n\t-b: bootstrap this helper"
 }
 
@@ -50,11 +51,16 @@ SetTemplate(){
     if [[ -z $CSL ]] ; then
         CSL="$HOME/.local/share/pandoc/templates/chicago_note.csl"
     fi
+    if [[ $nofilters ]] ; then
+    filters=""
+    else
+    filters="--filter=pandoc-url2cite --filter=pandoc-citeproc"
+    fi
 }
 
 Convertpdf(){
     pandoc \
-    --filter=pandoc-url2cite --filter=pandoc-citeproc \
+    $filters \
     --csl $CSL \
     --pdf-engine=tectonic \
     --template $template \
@@ -85,6 +91,10 @@ case $key in
     ;;
     -h|--help)
     Help && exit 0
+    ;;
+    -nf|--filters)
+    nofilters=true
+    shift
     ;;
     *)
     POSITIONAL+=("$1")
