@@ -14,14 +14,14 @@
 
 % Colours - links includes TOC
 \definecolor{blockquote-border}{HTML}{797979}
-\definecolor{blockquote-text}{HTML}{f2efd7}
-\definecolor{blockquote-background}{HTML}{414141}
-\definecolor{heading-color}{HTML}{f0609c}
-\definecolor{h2-color}{HTML}{c2c4d5}
-\definecolor{h3-color}{HTML}{c2c4d5}
-\definecolor{page}{HTML}{2c2c2c}
-\definecolor{text}{HTML}{f9fafc}
-\definecolor{link-color}{HTML}{d8eedd}
+\definecolor{blockquote-text}{HTML}{e5e5ff}
+\definecolor{blockquote-background}{HTML}{202020}
+\definecolor{heading-color}{HTML}{38a4ae}
+\definecolor{h2-color}{HTML}{f5f5ff}
+\definecolor{h3-color}{HTML}{f5f5ff}
+\definecolor{page}{HTML}{111111}
+\definecolor{text}{HTML}{ffffff}
+\definecolor{link-color}{HTML}{b5ebf0}
 \pagecolor{page}
 \color{text}
 
