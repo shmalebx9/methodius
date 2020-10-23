@@ -1,0 +1,151 @@
+% Optimized For Markdown Notes
+% based on work form sofadesign - https://github.com/sofadesign
+\documentclass[13pt]{scrartcl}  
+
+% Needed packages
+\usepackage{fontspec,xltxtra,xunicode}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage[titles]{tocloft}
+
+% Margins
+\geometry{verbose,letterpaper,tmargin=0.5cm,bmargin=0.5cm,lmargin=1cm,rmargin=1cm}
+
+% Colours - links includes TOC
+\definecolor{blockquote-border}{HTML}{797979}
+\definecolor{blockquote-text}{HTML}{f2efd7}
+\definecolor{blockquote-background}{HTML}{414141}
+\definecolor{heading-color}{HTML}{f0609c}
+\definecolor{h2-color}{HTML}{c2c4d5}
+\definecolor{h3-color}{HTML}{c2c4d5}
+\definecolor{page}{HTML}{2c2c2c}
+\definecolor{text}{HTML}{f9fafc}
+\definecolor{link-color}{HTML}{d8eedd}
+\pagecolor{page}
+\color{text}
+
+% Headings
+\addtokomafont{section}{\centering\color{heading-color}}
+\addtokomafont{subsection}{\color{h2-color}}
+\addtokomafont{subsubsection}{\color{h3-color}}
+
+% blockquotes
+\usepackage{mdframed}
+\newmdenv[rightline=false,bottomline=false,topline=false,linewidth=3pt,linecolor=blockquote-border,skipabove=\parskip,backgroundcolor=blockquote-background]{customblockquote}
+\renewenvironment{quote}{\begin{customblockquote}\list{}{\rightmargin=0em\leftmargin=0em}%
+\item\relax\color{blockquote-text}\ignorespaces}{\unskip\unskip\endlist\end{customblockquote}}
+
+% Solve weird issue with bullet Lists
+\def\tightlist{}
+
+% Font Settings
+  \usepackage[default]{sourcesanspro}
+  \usepackage{sourcecodepro}
+
+      \makeatletter
+    \defaultfontfeatures[\ttfamily]
+      { Numbers   = \sourcecodepro@figurestyle,
+        Scale     = \SourceCodePro@scale,
+        Extension = .otf }
+    \setmonofont
+      [ UprightFont    = *-\sourcecodepro@regstyle,
+        ItalicFont     = *-\sourcecodepro@regstyle It,
+        BoldFont       = *-\sourcecodepro@boldstyle,
+        BoldItalicFont = *-\sourcecodepro@boldstyle It ]
+      {SourceCodePro}
+    \makeatother
+
+% Remove Page Numbers
+\pagestyle{empty}
+
+% Pandoc Defaults
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+$if(verbatim-in-note)$
+\usepackage{fancyvrb}
+$endif$
+
+$if(fancy-enums)$
+\makeatletter\AtBeginDocument{%
+  \renewcommand{\@listi}
+    {\setlength{\labelwidth}{4em}}
+}\makeatother
+\usepackage{enumerate}
+$endif$
+
+$if(tables)$
+\usepackage{array}
+\usepackage{longtable,booktabs}
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
+$endif$
+
+$if(subscript)$
+\newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
+$endif$
+
+\usepackage[breaklinks=true]{hyperref}
+\hypersetup{colorlinks,%
+citecolor=blue,%
+filecolor=blue,%
+linkcolor=link-color,%
+urlcolor=blue}
+$if(url)$
+\usepackage{url}
+$endif$
+
+$if(graphics)$
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+\else\Gin@nat@width\fi}
+\makeatother
+\let\Oldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maxwidth]{#1}}
+$endif$
+
+$if(numbersections)$
+$else$
+\setcounter{secnumdepth}{0}
+$endif$
+
+$if(verbatim-in-note)$
+\VerbatimFootnotes % -- allows verbatim text in footnotes
+$endif$
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+$if(title)$
+\title{$title$}
+$endif$
+\author{$for(author)$$author$$sep$\\$endfor$}
+$if(date)$
+\date{$date$}
+$endif$ 
+
+\begin{document}
+
+
+$if(title)$
+\maketitle
+$endif$
+
+% TOC will always be generated
+\tableofcontents
+
+
+$if(alignment)$
+\begin{$alignment$}
+$endif$
+
+$body$
+
+%$if(alignment)$
+\end{$alignment$}
+$endif$
+
+
+\end{document}
