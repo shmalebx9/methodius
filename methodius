@@ -19,9 +19,13 @@ Bootstrap(){
 
 
     echo -e "\n\tInstalling pandoc-url2cite"
-    sudo npm install -g pandoc-url2cite  \
-    || sudo xbps-install nodejs \
-    && sudo npm install -g pandoc-url2cite \
+    git clone https://github.com/Aver1y/pandoc-url2cite-hs
+    cd pandoc-url2cite-hs
+    echo -e "\n\tBuilding dependencies can take a while"
+    sudo cabal install  \
+    || sudo xbps-install cabal \
+    && sudo cabal install \
+    && (cd .. ; rm -r pandoc-url2cite-hs/) \
     || { echo -e "\n \tfailed to install pandoc-url2cite" \
     && return 1; }
 
@@ -41,7 +45,8 @@ Help(){
     \n\t-c: path to csl file \
     \n\t-t: path to latex template \
     \n\t-nf: do not apply citation filters \
-    \n\t-b: bootstrap this helper"
+    \n\t-no: do not open the pdf after conversion \
+    \n\t-b: bootstrap this helper" 
 }
 
 SetTemplate(){
@@ -54,7 +59,10 @@ SetTemplate(){
     if [[ $nofilters ]] ; then
     filters=""
     else
-    filters="--filter=pandoc-url2cite --filter=pandoc-citeproc"
+    filters="--filter=pandoc-url2cite-hs"
+    fi
+    if [[ -v $open_after ]] ; then
+    open_after=true
     fi
 }
 
@@ -65,8 +73,14 @@ Convertpdf(){
     --pdf-engine=tectonic \
     --template $template \
     -s $file \
-    -o $output.pdf \
+    -o $output \
     && return 0 || return 1
+}
+
+Post_open() {
+    if $open_after ; then
+    devour zathura $output || exo-open $output
+    fi
 }
 
 POSITIONAL=()
@@ -96,6 +110,10 @@ case $key in
     nofilters=true
     shift
     ;;
+    -no|--no-open)
+    open_after=false
+    shift
+    ;;
     *)
     POSITIONAL+=("$1")
     shift
@@ -106,8 +124,9 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 file=$1
 base=$(basename $1)
-output=${base%%.*}
+output="${base%%.*}.pdf"
 
 SetTemplate
-echo -e "\t[INPUT VARIABLES]\n\tinput: $file \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output.pdf\n"
+echo -e "\t[INPUT VARIABLES]\n\tinput: $file \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output\n"
 Convertpdf
+Post_open
