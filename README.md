@@ -5,11 +5,11 @@ The default template is a badly edited version of [eisvogel](https://github.com/
 
 | Cupertino |
 :----------:|
-![](examples/cupertino.png)|
+![](https://github.com/shmalebx9/methodius/blob/assets/examples/cupertino.png)|
 
 Methodius                   | Case                   |
 :--------------------------:|:----------------------:|
-![](examples/methodius.png) | ![](examples/case.png) |
+![](https://github.com/shmalebx9/methodius/blob/assets/examples/methodius.png) | ![](https://github.com/shmalebx9/methodius/blob/assets/examples/case.png) |
 
 ## Installation & usage
 Make sure the methodius script is executeable then try running with the `-b` flag. The bootstrap process will install the templates and attempt to aquire the necessary tools. The bootstrapper should be considered incomplete, so manual installation of the required tools is preffered after the templates have been bootstrapped.
