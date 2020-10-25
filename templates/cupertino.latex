@@ -9,7 +9,8 @@
 \usepackage{xcolor}
 \usepackage[titles]{tocloft}
 \usepackage{mdframed}
-
+\usepackage[default]{opensans}
+\usepackage[T1]{fontenc}
 
 % Margins
 \geometry{verbose,letterpaper,tmargin=0.5cm,bmargin=0.5cm,lmargin=1cm,rmargin=1cm}
@@ -23,42 +24,27 @@
 \definecolor{h3-color}{HTML}{f5f5ff}
 \definecolor{page}{HTML}{111111}
 \definecolor{text}{HTML}{ffffff}
-\definecolor{link-color}{HTML}{b5ebf0}
+\definecolor{link-color}{HTML}{70B8FF}
 \pagecolor{page}
 \color{text}
 
 % Headings
-\addtokomafont{section}{\centering\color{heading-color}}
-\addtokomafont{subsection}{\color{h2-color}}
-\addtokomafont{subsubsection}{\color{h3-color}}
+\addtokomafont{section}{\centering\huge\mdseries\color{heading-color}}
+\addtokomafont{subsection}{\mdseries\color{h2-color}}
+\addtokomafont{subsubsection}{\mdseries\color{h3-color}}
 
 % blockquotes
 \newmdenv[rightline=false,bottomline=false,topline=false,linewidth=3pt,linecolor=blockquote-border,skipabove=\parskip,backgroundcolor=blockquote-background]{customblockquote}
 \renewenvironment{quote}{\begin{customblockquote}\list{}{\rightmargin=0em\leftmargin=0em}%
 \item\relax\color{blockquote-text}\ignorespaces}{\unskip\unskip\endlist\end{customblockquote}}
 
-% Paragraph lines
-
-
 % Solve weird issue with bullet Lists
 \def\tightlist{}
 
 % Font Settings
-  \usepackage[default]{sourcesanspro}
-  \usepackage{sourcecodepro}
-
-      \makeatletter
-    \defaultfontfeatures[\ttfamily]
-      { Numbers   = \sourcecodepro@figurestyle,
-        Scale     = \SourceCodePro@scale,
-        Extension = .otf }
-    \setmonofont
-      [ UprightFont    = *-\sourcecodepro@regstyle,
-        ItalicFont     = *-\sourcecodepro@regstyle It,
-        BoldFont       = *-\sourcecodepro@boldstyle,
-        BoldItalicFont = *-\sourcecodepro@boldstyle It ]
-      {SourceCodePro}
-    \makeatother
+\renewcommand\seriesdefault{m}
+\renewcommand\mddefault{l}
+\renewcommand\bfdefault{sb}
 
 % Remove Page Numbers
 \pagestyle{empty}
