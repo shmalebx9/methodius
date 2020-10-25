@@ -8,6 +8,8 @@
 \usepackage{geometry}
 \usepackage{xcolor}
 \usepackage[titles]{tocloft}
+\usepackage{mdframed}
+
 
 % Margins
 \geometry{verbose,letterpaper,tmargin=0.5cm,bmargin=0.5cm,lmargin=1cm,rmargin=1cm}
@@ -16,7 +18,7 @@
 \definecolor{blockquote-border}{HTML}{797979}
 \definecolor{blockquote-text}{HTML}{e5e5ff}
 \definecolor{blockquote-background}{HTML}{202020}
-\definecolor{heading-color}{HTML}{38a4ae}
+\definecolor{heading-color}{HTML}{70B8FF}
 \definecolor{h2-color}{HTML}{f5f5ff}
 \definecolor{h3-color}{HTML}{f5f5ff}
 \definecolor{page}{HTML}{111111}
@@ -31,10 +33,12 @@
 \addtokomafont{subsubsection}{\color{h3-color}}
 
 % blockquotes
-\usepackage{mdframed}
 \newmdenv[rightline=false,bottomline=false,topline=false,linewidth=3pt,linecolor=blockquote-border,skipabove=\parskip,backgroundcolor=blockquote-background]{customblockquote}
 \renewenvironment{quote}{\begin{customblockquote}\list{}{\rightmargin=0em\leftmargin=0em}%
 \item\relax\color{blockquote-text}\ignorespaces}{\unskip\unskip\endlist\end{customblockquote}}
+
+% Paragraph lines
+
 
 % Solve weird issue with bullet Lists
 \def\tightlist{}
