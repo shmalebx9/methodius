@@ -12,7 +12,7 @@ Methodius                   | Case                   |
 ![](https://github.com/shmalebx9/methodius/blob/assets/examples/methodius.png) | ![](https://github.com/shmalebx9/methodius/blob/assets/examples/case.png) |
 
 ## Installation & usage
-Make sure the methodius script is executeable then try running with the `-b` flag. The bootstrap process will install the templates and attempt to aquire the necessary tools. The bootstrapper should be considered incomplete, so manual installation of the required tools is preffered after the templates have been bootstrapped.
+Make sure the methodius script is executable then try running with the `-b` flag. The bootstrap process will install the templates and attempt to acquire the necessary tools. The bootstrapper should be considered incomplete, so manual installation of the required tools is preferred after the templates have been bootstrapped. The url2cite filter is not currently compatible with pandoc 2.10+. If you face citation issues try verifying your pandoc version is 2.9x or below.
 
 To use the wrapper run it from your git repo directory or add it to your `$PATH`
 
