@@ -17,15 +17,13 @@ Bootstrap(){
     || { echo -e "\n\tfailed to install texlive" \
     && return 1; }
 
+    echo -e "\n\tInstalling npm as build dependency for pandoc-url2cite"
+    sudo xbps-install nodejs \
+    || { echo -e "\n \tfailed to install pandoc-url2cite" \
+    && return 1; }
 
     echo -e "\n\tInstalling pandoc-url2cite"
-    git clone https://github.com/Aver1y/pandoc-url2cite-hs
-    cd pandoc-url2cite-hs
-    echo -e "\n\tBuilding dependencies can take a while"
-    sudo cabal install  \
-    || sudo xbps-install cabal \
-    && sudo cabal install \
-    && (cd .. ; rm -r pandoc-url2cite-hs/) \
+    sudo npm install -g pandoc-url2cite \
     || { echo -e "\n \tfailed to install pandoc-url2cite" \
     && return 1; }
 
@@ -59,10 +57,13 @@ SetTemplate(){
     if [[ $nofilters ]] ; then
     filters=""
     else
-    filters="--filter=pandoc-url2cite-hs"
+    filters="--filter=pandoc-url2cite --filter=pandoc-citeproc"
     fi
     if [[ -v $open_after ]] ; then
     open_after=true
+    fi
+    if [[ -v $devour ]] ; then
+    devour=true
     fi
 }
 
@@ -79,7 +80,11 @@ Convertpdf(){
 
 Post_open() {
     if $open_after ; then
-    devour zathura $output || exo-open $output
+        if $devour ; then
+            devour zathura $output || exo-open $output
+        else
+            zathura $output || exo-open $output
+        fi
     fi
 }
 
@@ -114,6 +119,10 @@ case $key in
     open_after=false
     shift
     ;;
+    -nd|--no-devour)
+    devour=false
+    shift
+    ;;
     *)
     POSITIONAL+=("$1")
     shift
@@ -128,5 +137,4 @@ output="${base%%.*}.pdf"
 
 SetTemplate
 echo -e "\t[INPUT VARIABLES]\n\tinput: $file \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output\n"
-Convertpdf
-Post_open
+Convertpdf && Post_open
