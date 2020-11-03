@@ -26,11 +26,39 @@ or:
 	
 	methodius test.md -t mytemplate -c path/to/my/CSL.csl
 
+For mermaid charts you must include `format=pdf loc=mermaid-images` in your codeblock and pass the `-m` option. For example:
+
+	~~~{.mermaid format=pdf loc=mermaid-images}
+	graph TB
+	A[No Basic Fact]
+	B[Basic Fact]
+	C[Permissive]
+	D[Mandatory]
+	E[Conclusive]
+	F[Rebuttable]
+	G[Balance of Probabilities]
+	H[Evidence to the contrary]
+	I[Presumptions]
+	I --> A
+	I --> B
+	B --> C
+	B --> D
+	C --> E
+	C --> F
+	F --> G
+	F --> H
+	~~~
+
+Will render as: 
+![](https://github.com/shmalebx9/methodius/blob/assets/examples/mermaid-example.pdf)
+
 ## Required tools
 * [url2cite](https://github.com/phiresky/pandoc-url2cite) for citations
 * [pandoc](https://pandoc.org/)
 * [tectonic](https://tectonic-typesetting.github.io/en-US/) as a pdf engine
++ [mermaid-filter](https://github.com/raghur/mermaid-filter)
 * A functioning Texlive installation (Check your distro's docs)
++ Optionally: librsvg-utils for mermaid
 
 The bootstrap function in the script will attempt to install these tools. The bootstrapper is configured  for void and will not work properly on other distros.
 
@@ -43,3 +71,5 @@ Eisvogel latex template from [Pascal Wagler and John MacFarlane](https://github.
 [url2cite](https://github.com/phiresky/pandoc-url2cite) by phiresky
 
 Chicago-note CSL from [Zotero](https://www.zotero.org/)
+
+[mermaid-filter](https://github.com/raghur/mermaid-filter) by raghur
