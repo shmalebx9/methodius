@@ -51,7 +51,7 @@ For mermaid charts you must include `format=pdf loc=mermaid-images` in your code
 
 Will render as: 
 
-![](https://github.com/shmalebx9/methodius/blob/assets/examples/mermaid-example.pdf)
+![](https://github.com/shmalebx9/methodius/blob/assets/examples/mermaid-example.png)
 
 ## Required tools
 * [url2cite](https://github.com/phiresky/pandoc-url2cite) for citations
