@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+export PATH=~/.npm-global/bin:$PATH
+
 Bootstrap(){
 
     echo -e "\n\tInstalling templates"
@@ -22,9 +24,19 @@ Bootstrap(){
     || { echo -e "\n \tfailed to install pandoc-url2cite" \
     && return 1; }
 
+    echo -e "\n\tInstalling librsvg-utils for mermaid-filter"
+    sudo xbps-install librsvg-utils \
+    || { echo -e "\n \tfailed to install librsvg-utils" \
+    && return 1; }
+
     echo -e "\n\tInstalling pandoc-url2cite"
     sudo npm install -g pandoc-url2cite \
     || { echo -e "\n \tfailed to install pandoc-url2cite" \
+    && return 1; }
+
+    echo -e "\n\tInstalling mermaid-filter"
+    sudo npm install -g mermaid-filter \
+    || { echo -e "\n \tfailed to install mermaid-filter" \
     && return 1; }
 
     echo -e "\n\tInstalling tectonic"
@@ -44,7 +56,8 @@ Help(){
     \n\t-t: path to latex template \
     \n\t-nf: do not apply citation filters \
     \n\t-no: do not open the pdf after conversion \
-    \n\t-b: bootstrap this helper" 
+    \n\t-b: bootstrap this helper \
+    \n\t-m: enable mermaid figures"
 }
 
 SetTemplate(){
@@ -57,7 +70,7 @@ SetTemplate(){
     if [[ $nofilters ]] ; then
     filters=""
     else
-    filters="--filter=pandoc-url2cite --filter=pandoc-citeproc"
+    filters="--filter=pandoc-url2cite --citeproc"
     fi
     if [[ -v $open_after ]] ; then
     open_after=true
@@ -70,6 +83,7 @@ SetTemplate(){
 Convertpdf(){
     pandoc \
     $filters \
+    $mermaid \
     --csl $CSL \
     --pdf-engine=tectonic \
     --template $template \
@@ -86,6 +100,13 @@ Post_open() {
             zathura $output || exo-open $output
         fi
     fi
+}
+
+Cleanmermaid(){
+if $cleanMermaid ; then
+    rm mermaid-filter.err
+    rm -rf mermaid-images/
+fi
 }
 
 POSITIONAL=()
@@ -123,6 +144,12 @@ case $key in
     devour=false
     shift
     ;;
+    -m|--mermaid)
+    mermaid="--filter=mermaid-filter"
+    mkdir mermaid-images
+    cleanMermaid=true
+    shift
+    ;;
     *)
     POSITIONAL+=("$1")
     shift
@@ -137,4 +164,4 @@ output="${base%%.*}.pdf"
 
 SetTemplate
 echo -e "\t[INPUT VARIABLES]\n\tinput: $file \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output\n"
-Convertpdf && Post_open
+Convertpdf && Cleanmermaid && Post_open
