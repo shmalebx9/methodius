@@ -50,6 +50,7 @@ For mermaid charts you must include `format=pdf loc=mermaid-images` in your code
 	~~~
 
 Will render as: 
+
 ![](https://github.com/shmalebx9/methodius/blob/assets/examples/mermaid-example.pdf)
 
 ## Required tools
