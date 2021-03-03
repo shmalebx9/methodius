@@ -8,15 +8,8 @@ Bootstrap(){
     mkdir -p ~/.local/share/pandoc/templates
     cp $PWD/templates/* ~/.local/share/pandoc/templates
 
-    echo -e "\n\tInstalling texlive"
-    sudo xbps-install texlive-bin texlive-latexextra \
-    && source /etc/profile \
-    && sudo tlmgr install adjustbox babel-german background \
-    bidi collectbox csquotes everypage filehook footmisc \
-    footnotebackref framed fvextra letltxmacro ly1 mdframed \
-    mweights needspace pagecolor sourcecodepro \
-    sourcesanspro titling ucharcat ulem unicode-math upquote xecjk xurl zref\
-    || { echo -e "\n\tfailed to install texlive" \
+    echo -e "\n\tInstalling tectonic"
+    sudo xbps-install tectonic || { echo -e "\n\tfailed to install tectonic" \
     && return 1; }
 
     echo -e "\n\tInstalling npm as build dependency for pandoc-url2cite"
@@ -60,6 +53,73 @@ Help(){
     \n\t-m: enable mermaid figures"
 }
 
+Getcitation(){
+while read line ; do
+url=${line#*canlii.org}
+key=""
+db=$(cut -d '/' -f4 <<< $url )
+jur=$(cut -d '/' -f3 <<< $url )
+ident=$(cut -d '/' -f7<<< $url )
+dbid=$(awk '$0~i{print $2}' i="$db " $HOME/.local/share/methodius/equ/master)
+
+cacheresponse=$(grep -m1 "$url" $HOME/.local/share/methodius/canliicache | cut -d '|' -f2)
+if [ -n "${cacheresponse}" ] ; then
+	echo "$cacheresponse"
+	exit 0
+fi
+
+requesturl="https://api.canlii.org/v1/caseBrowse/en/$dbid/$ident/?api_key=$key"
+response=$(wget -qO- "$requesturl")
+if [ -z "${response}" ] ; then
+	echo "failed to connect to canlii with url $requesturl, exiting"
+	exit 1
+fi
+
+soc=$(awk -F '"' '/title":/ {print $4}' <<< "$response")
+citekeyresponse=$(awk -F '"' '/citation":/ {print $4}' <<< "$response")
+citekey=${citekeyresponse%\ \(CanLII)*}
+
+if [ -n "${soc}" ] && [ -n "${citekey}" ] ; then
+	citation="*$soc,* $citekey"
+	echo "$citation"
+	echo "$url|$citation" >> $HOME/.local/share/methodius/canliicache
+else
+	echo -e "failed to find database for canlii response\nresponse:\t$response\ndb:\t$db\ndbid:\t$dbib\njurisdiction:$jur\nidentity:\t$ident"
+	exit 1
+fi
+done
+}
+
+Findlinks(){
+	declare -A CITATIONS
+	grep -o '(.*\.canlii.org.*\.html.*)' | while read line ; do
+	chunk=""
+	link=""
+	pinpoint=""
+		if [ -z "${CITATIONS["$line"]}" ] ; then
+		chunk="${line:1:${#line}-2}"
+		pinpoint=$(awk '$1=""; {print $0}' <<< "$chunk")
+		link=$(awk '{print $1}' <<< "$chunk")
+		citation=$(Getcitation <<< "$link")
+		CITATIONS["$line"]="^[$citation$pinpoint]"
+		fi
+		sed -i "s|$line|${CITATIONS[$line]}|g" $copy
+	done
+}
+
+Legalcite(){
+output="$PWD/${base%%.*}.pdf"
+CSL="$HOME/.local/share/pandoc/templates/mcgill-en.csl"
+filename=$(basename "$file")
+mkdir -p /tmp/methodius/
+copy="/tmp/methodius/$base"
+cp "$file" /tmp/methodius/
+
+echo "copy is $copy"
+Findlinks < "$copy"
+input="$copy"
+}
+
 SetTemplate(){
     if [[ -z $template ]] ; then
         template="methodius"
@@ -78,6 +138,13 @@ SetTemplate(){
     if [[ -v $devour ]] ; then
     devour=true
     fi
+    if $legal ; then
+	Legalcite
+    fi
+    if [[ -z $input ]] ; then
+	    input="$file"
+    fi
+
 }
 
 Convertpdf(){
@@ -87,7 +154,7 @@ Convertpdf(){
     --csl $CSL \
     --pdf-engine=tectonic \
     --template $template \
-    -s $file \
+    -s $input \
     -o $output \
     && return 0 || return 1
 }
@@ -150,6 +217,10 @@ case $key in
     cleanMermaid=true
     shift
     ;;
+    -l|--legal)
+    legal=true
+    shift
+    ;;
     *)
     POSITIONAL+=("$1")
     shift
@@ -163,5 +234,5 @@ base=$(basename $1)
 output="${base%%.*}.pdf"
 
 SetTemplate
-echo -e "\t[INPUT VARIABLES]\n\tinput: $file \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output\n"
+echo -e "\t[INPUT VARIABLES]\n\tinput: $input \n\ttemplate: $template \n\tCSL: $CSL \n\toutput: $output\n"
 Convertpdf && Cleanmermaid && Post_open
