@@ -62,7 +62,7 @@ while read soc ; do
 	party1=$(sed 's/Corp.\|ltd.\|Co.\|The//' <<< "$pstring1")
 	party2=$(sed 's/Corp.\|ltd.\|Co.\|The//' <<< "$pstring2")
 	style="$party1 v $party2"
-	length=$(wc -w <<< "style")
+	length=$(wc -w <<< "$style")
 	if [ "$length" -lt 4 ] ; then
 	 echo "$party1 v $party2"
 	else
@@ -107,7 +107,6 @@ SHORTNAMES[$link]="$shortname"
 
 if [ -n "${soc}" ] && [ -n "${citekey}" ] ; then
 	citation="*$soc,* $citekey"
-	echo "$citation"
 	echo "$url|$citation|$shortname" >> $HOME/.local/share/methodius/canliicache
 else
 	echo -e "failed to find database for canlii response\nresponse:\t$response\ndb:\t$db\ndbid:\t$dbib\njurisdiction:$jur\nidentity:\t$ident"
@@ -165,10 +164,7 @@ Findlinks(){
 		count=$(( $count + 1 ))
 	;;
 	esac
-
 done < <(grep -o '(.*\.canlii.org.*\.html.*)\|\^\[.*\]')
-
-	echo "Got Shortames ${SHORTNAMES[@]}"
 }
 
 Legalcite(){
@@ -179,7 +175,6 @@ mkdir -p /tmp/methodius/
 copy="/tmp/methodius/$base"
 cp "$file" /tmp/methodius/
 
-echo "copy is $copy"
 awk 'match($0, /\(.*\.canlii.org.*\.html/) {gsub(")",""); print substr($0, RSTART+1, RLENGTH)}' $copy | uniq -u > /tmp/methodius/uniq_test
 Findlinks < "$copy"
 input="$copy"
@@ -187,27 +182,27 @@ input="$copy"
 
 SetTemplate(){
     if [[ -z $template ]] ; then
-        template="methodius"
+     template="methodius"
     fi
     if [[ -z $CSL ]] ; then
-        CSL="$HOME/.local/share/pandoc/templates/chicago_note.csl"
+     CSL="$HOME/.local/share/pandoc/templates/chicago_note.csl"
     fi
     if [[ $nofilters ]] ; then
-    filters=""
+     filters=""
     else
-    filters="--filter=pandoc-url2cite --citeproc"
+     filters="--filter=pandoc-url2cite --citeproc"
     fi
     if [[ -v $open_after ]] ; then
-    open_after=true
+     open_after=true
     fi
     if [[ -v $devour ]] ; then
-    devour=true
+     devour=true
     fi
     if $legal ; then
 	Legalcite
     fi
     if [[ -z $input ]] ; then
-	    input="$file"
+     input="$file"
     fi
 
 }
