@@ -53,20 +53,44 @@ Help(){
     \n\t-m: enable mermaid figures"
 }
 
+# Function looks dumb, but CanLII will sometimes respond with a 'v.'
+# between parties and sometimes the standard 'v' this fixes that.
+Getshortname(){
+while read soc ; do
+	pstring1=${soc% *v* *}
+	pstring2=${soc#* *v* }
+	party1=$(sed 's/Corp.\|ltd.\|Co.\|The//' <<< "$pstring1")
+	party2=$(sed 's/Corp.\|ltd.\|Co.\|The//' <<< "$pstring2")
+	style="$party1 v $party2"
+	length=$(wc -w <<< "style")
+	if [ "$length" -lt 4 ] ; then
+	 echo "$party1 v $party2"
+	else
+	 if [ "$party1" == "R" ] ; then
+	 	echo "${party2%% *}"
+	 else
+	 	echo "${party1%% *}"
+	 fi
+	fi
+done
+}
+
 Getcitation(){
-while read line ; do
-url=${line#*canlii.org}
+shortname=""
+url=${link#*canlii.org}
 key=""
 db=$(cut -d '/' -f4 <<< $url )
 jur=$(cut -d '/' -f3 <<< $url )
 ident=$(cut -d '/' -f7<<< $url )
+shortname=""
 dbid=$(awk '$0~i{print $2}' i="$db " $HOME/.local/share/methodius/equ/master)
 
 cacheresponse=$(grep -m1 "$url" $HOME/.local/share/methodius/canliicache | cut -d '|' -f2)
 if [ -n "${cacheresponse}" ] ; then
-	echo "$cacheresponse"
-	exit 0
-fi
+	citation="$cacheresponse"
+	SHORTNAMES[$link]=$(grep -m1 "$url" $HOME/.local/share/methodius/canliicache | cut -d '|' -f3)
+	return 0
+else
 
 requesturl="https://api.canlii.org/v1/caseBrowse/en/$dbid/$ident/?api_key=$key"
 response=$(wget -qO- "$requesturl")
@@ -78,33 +102,73 @@ fi
 soc=$(awk -F '"' '/title":/ {print $4}' <<< "$response")
 citekeyresponse=$(awk -F '"' '/citation":/ {print $4}' <<< "$response")
 citekey=${citekeyresponse%\ \(CanLII)*}
+shortname=$(Getshortname <<< "$soc")
+SHORTNAMES[$link]="$shortname"
 
 if [ -n "${soc}" ] && [ -n "${citekey}" ] ; then
 	citation="*$soc,* $citekey"
 	echo "$citation"
-	echo "$url|$citation" >> $HOME/.local/share/methodius/canliicache
+	echo "$url|$citation|$shortname" >> $HOME/.local/share/methodius/canliicache
 else
 	echo -e "failed to find database for canlii response\nresponse:\t$response\ndb:\t$db\ndbid:\t$dbib\njurisdiction:$jur\nidentity:\t$ident"
 	exit 1
 fi
-done
+fi
 }
 
 Findlinks(){
+	count=0
 	declare -A CITATIONS
-	grep -o '(.*\.canlii.org.*\.html.*)' | while read line ; do
+	declare -A NOTENUMBER
+	declare -A PINPOINTS
+	declare -A LASTCITE
+	declare -A SHORTNAMES
+	while read line ; do
+	case $line in
+	*canlii*)
 	chunk=""
 	link=""
 	pinpoint=""
-		if [ -z "${CITATIONS["$line"]}" ] ; then
+	distance=""
+	suffix=""
+	pincite=""
+	count=$(( $count + 1 ))
 		chunk="${line:1:${#line}-2}"
 		pinpoint=$(awk '$1=""; {print $0}' <<< "$chunk")
 		link=$(awk '{print $1}' <<< "$chunk")
-		citation=$(Getcitation <<< "$link")
-		CITATIONS["$line"]="^[$citation$pinpoint]"
+		if [ -z "${CITATIONS["$link"]}" ] ; then
+		 Getcitation
+		 if ! grep -q "$chunk" /tmp/methodius/uniq_test ; then
+		  suffix=" \[${SHORTNAMES[$link]}\]"
+		 fi
+		 CITATIONS["$link"]="$citation"
+		 NOTENUMBER["$link"]="$count"
+		 sed -i "0,\|$chunk|{s|$line|\^\[$citation$pinpoint$suffix\]|}" $copy
+		else
+		 distance=$(($count-${NOTENUMBER[$link]}))
+		 distancelast=$(($count - ${LASTCITE[$link]}))
+		 if [ ! "${PINPOINTS[$link]}" == "$pinpoint" ] ; then
+		  pincite="$pinpoint"
+		 fi
+		 if [ "$distance" -eq 1 ] ; then
+		  sed -i "0,\|$chunk|{s|$line|\^\[*ibid*$pincite\]|}" $copy
+		 elif [ "$distancelast" -eq 1 ] ; then
+		  sed -i "0,\|$chunk|{s|$line|\^\[*ibid*$pincite\]|}" $copy
+		 else
+			 sed -i "0,\|$chunk|{s|$line|\^\[*${SHORTNAMES[$link]}, supra* note ${NOTENUMBER[$link]},$pincite\]|}" $copy
+		 fi
 		fi
-		sed -i "s|$line|${CITATIONS[$line]}|g" $copy
-	done
+		LASTCITE[$link]="$count"
+		PINPOINTS[$link]="$pinpoint"
+	;;
+	*)
+		count=$(( $count + 1 ))
+	;;
+	esac
+
+done < <(grep -o '(.*\.canlii.org.*\.html.*)\|\^\[.*\]')
+
+	echo "Got Shortames ${SHORTNAMES[@]}"
 }
 
 Legalcite(){
@@ -116,6 +180,7 @@ copy="/tmp/methodius/$base"
 cp "$file" /tmp/methodius/
 
 echo "copy is $copy"
+awk 'match($0, /\(.*\.canlii.org.*\.html/) {gsub(")",""); print substr($0, RSTART+1, RLENGTH)}' $copy | uniq -u > /tmp/methodius/uniq_test
 Findlinks < "$copy"
 input="$copy"
 }
